@@ -2,9 +2,9 @@ USE Library
 GO
 
 --Write a query to find all books that are overdue (by at least 3 days) for return to the library.
-SELECT *
+SELECT LendingID, LibraryID, ISBN, StartDateTime, EndDateTime, EndOfGracePeriod
 FROM LENDING_ACTIVITY
-WHERE GETDATE() > DATEADD(day, 3, EndOfGracePeriod) AND ActualReturnDateTime IS NULL;
+WHERE GETDATE() > DATEADD(day, 3, EndDateTime) AND ActualReturnDateTime IS NULL;
 
 -- Write a query to produce a list of customers who have made less than 5 loans in the past 3 months. Show appropriate customer and loan details in your answer.
 SELECT LendingID, lm.LibraryID, ISBN, FirstName, LastName, StartDateTime as StartOfLoan, EndDateTime as EndOfLoan
@@ -26,7 +26,7 @@ GO
 DROP PROCEDURE interLibraryLoanReport
 
 GO
-CREATE PROC interLibraryLoanReport AS
+ALTER PROC interLibraryLoanReport AS
 DECLARE @borrowingID int,
 @lenderID int,
 @lenderName Char(20),
@@ -55,7 +55,7 @@ BEGIN
 		PRINT 'BorrowingID: ' + cast(@borrowingID as VarChar(15)) + '  ' + 'LenderID: ' + cast(@lenderID as VarChar(15)) + ' ' +  @lenderName + '  ' + 'Book Borrowed: ' + cast(@ISBN as VarChar(20)) + ' ' + @bookTitle + '    ' + 'Current Loan Duration: ' + cast(@loanDuration as VarChar(20)) + ' days' 
 
 		FETCH NEXT FROM INTER_LOAN INTO @borrowingID, @lenderID, @lenderName, @ISBN, @bookTitle, @startDateTime, @endDateTime
-		SET @loanDuration = DATEDIFF(day, GETDATE(), @endDateTime)
+		SET @loanDuration = DATEDIFF(day, @startDateTime, GETDATE())
 	END
 
 	CLOSE INTER_LOAN
